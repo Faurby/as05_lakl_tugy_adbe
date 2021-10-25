@@ -15,12 +15,12 @@ namespace GildedRose.Tests
             {
                 Items = new List<Item>
                 {
-                    new Item {Name = "+5 Dexterity Vest", SellIn = 10, Quality = 20},
-                    new Item {Name = "Aged Brie", SellIn = 2, Quality = 0},
-                    new Item {Name = "Elixir of the Mongoose", SellIn = 5, Quality = 7},
-                    new Item {Name = "Sulfuras, Hand of Ragnaros", SellIn = 0, Quality = 80},
-                    new Item {Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = 15, Quality = 20 },
-                    new Item {Name = "Conjured Mana Cake", SellIn = 3, Quality = 6}
+                    new Common {Name = "+5 Dexterity Vest", SellIn = 10, Quality = 20},
+                    new Cheese {Name = "Aged Brie", SellIn = 2, Quality = 0},
+                    new Common {Name = "Elixir of the Mongoose", SellIn = 5, Quality = 7},
+                    new Legendary {Name = "Sulfuras, Hand of Ragnaros", SellIn = 0, Quality = 80},
+                    new ConcertTicket {Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = 15, Quality = 20 },
+                    new Conjured {Name = "Conjured Mana Cake", SellIn = 3, Quality = 6}
                 }
             };
             this.app = _app;
@@ -94,25 +94,25 @@ namespace GildedRose.Tests
         {
             var item = app.Items.Where(i => i.Name == "Backstage passes to a TAFKAL80ETC concert").FirstOrDefault();
 
-            app.UpdateQuality();
             //Quality = 21
             //SellIn = 15
-
             app.UpdateQuality();
+
             //Quality = 22
             //SellIn = 14
-
             app.UpdateQuality();
+
             //Quality = 23
             //SellIn = 13
-
             app.UpdateQuality();
+
             //Quality = 24
             //SellIn = 12
-
             app.UpdateQuality();
+
             //Quality = 25
             //SellIn = 11
+            app.UpdateQuality();
 
             Assert.Equal(25, item.Quality);
 
@@ -150,10 +150,10 @@ namespace GildedRose.Tests
         {
             app.UpdateQuality();
             //Quality = 5
-            
+
             app.UpdateQuality();
             //Quality = 4
-            
+
             app.UpdateQuality();
             //Quality = 3
 
@@ -164,7 +164,7 @@ namespace GildedRose.Tests
             // Mana Bun Negative
             app.UpdateQuality();
             //Quality = 0
-            
+
             Assert.Equal(0, app.Items.Where(i => i.Name == "Conjured Mana Cake").FirstOrDefault().Quality);
         }
         [Fact]
@@ -172,10 +172,10 @@ namespace GildedRose.Tests
         {
             app.UpdateQuality();
             //Quality = 5
-            
+
             app.UpdateQuality();
             //Quality = 4
-            
+
             app.UpdateQuality();
             //Quality = 3
 
@@ -186,7 +186,7 @@ namespace GildedRose.Tests
             // Mana Bun Negative
             app.UpdateQuality();
             //Quality = 0
-            
+
             app.UpdateQuality();
             //Quality = 0
             Assert.Equal(0, app.Items.Where(i => i.Name == "Conjured Mana Cake").FirstOrDefault().Quality);
@@ -210,6 +210,16 @@ namespace GildedRose.Tests
             Assert.Equal(2, cheese.Quality);
             app.UpdateQuality();
             Assert.Equal(4, cheese.Quality);
+        }
+
+        [Fact]
+        public void ConjuredItem_Decrease_Twice_As_Fast_As_Common()
+        {
+            var conjured = app.Items.Where(c => c.Name == "Conjured Mana Cake").FirstOrDefault();
+
+            app.UpdateQuality();
+
+            Assert.Equal(4, conjured.Quality);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace GildedRose.Console
@@ -15,12 +16,12 @@ namespace GildedRose.Console
             {
                 Items = new List<Item>
                 {
-                    new Item {Name = "+5 Dexterity Vest", SellIn = 10, Quality = 20},
-                    new Item {Name = "Aged Brie", SellIn = 2, Quality = 0},
-                    new Item {Name = "Elixir of the Mongoose", SellIn = 5, Quality = 7},
-                    new Item {Name = "Sulfuras, Hand of Ragnaros", SellIn = 0, Quality = 80},
-                    new Item {Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = 15, Quality = 20 },
-                    new Item {Name = "Conjured Mana Cake", SellIn = 3, Quality = 6}
+                    new Common {Name = "+5 Dexterity Vest", SellIn = 10, Quality = 20},
+                    new Cheese {Name = "Aged Brie", SellIn = 2, Quality = 0},
+                    new Common {Name = "Elixir of the Mongoose", SellIn = 5, Quality = 7},
+                    new Legendary {Name = "Sulfuras, Hand of Ragnaros", SellIn = 0, Quality = 80},
+                    new ConcertTicket {Name = "Backstage passes to a TAFKAL80ETC concert", SellIn = 15, Quality = 20 },
+                    new Conjured {Name = "Conjured Mana Cake", SellIn = 3, Quality = 6}
                 }
 
             };
@@ -31,89 +32,93 @@ namespace GildedRose.Console
 
         public void UpdateQuality()
         {
-            for (var i = 0; i < Items.Count; i++)
+            foreach (var i in Items)
             {
-                if (Items[i].Name != "Aged Brie" && Items[i].Name != "Backstage passes to a TAFKAL80ETC concert")
-                {
-                    if (Items[i].Quality > 0)
-                    {
-                        if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                        {
-                            Items[i].Quality = Items[i].Quality - 1;
-                        }
-                    }
-                }
-                else
-                {
-                    if (Items[i].Quality < 50)
-                    {
-                        Items[i].Quality = Items[i].Quality + 1;
-
-                        if (Items[i].Name == "Backstage passes to a TAFKAL80ETC concert")
-                        {
-                            if (Items[i].SellIn < 11)
-                            {
-                                if (Items[i].Quality < 50)
-                                {
-                                    Items[i].Quality = Items[i].Quality + 1;
-                                }
-                            }
-
-                            if (Items[i].SellIn < 6)
-                            {
-                                if (Items[i].Quality < 50)
-                                {
-                                    Items[i].Quality = Items[i].Quality + 1;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                {
-                    Items[i].SellIn = Items[i].SellIn - 1;
-                }
-
-                if (Items[i].SellIn < 0)
-                {
-                    if (Items[i].Name != "Aged Brie")
-                    {
-                        if (Items[i].Name != "Backstage passes to a TAFKAL80ETC concert")
-                        {
-                            if (Items[i].Quality > 0)
-                            {
-                                if (Items[i].Name != "Sulfuras, Hand of Ragnaros")
-                                {
-                                    Items[i].Quality = Items[i].Quality - 1;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Items[i].Quality = Items[i].Quality - Items[i].Quality;
-                        }
-                    }
-                    else
-                    {
-                        if (Items[i].Quality < 50)
-                        {
-                            Items[i].Quality = Items[i].Quality + 1;
-                        }
-                    }
-                }
+                i.Update();
             }
         }
-
     }
 
-    public class Item
+    public abstract class Item
     {
         public string Name { get; set; }
 
         public int SellIn { get; set; }
 
         public int Quality { get; set; }
+
+        public void Update()
+        {
+            UpdateSellIn();
+            UpdateQuality();
+        }
+
+        public virtual void UpdateSellIn()
+        {
+            SellIn--;
+        }
+        abstract public void UpdateQuality();
+
+        protected void IncreaseQuality(int amount)
+        {
+            if (Quality < 50) Quality += amount;
+            Quality = Math.Min(Quality, 50);
+        }
+
+        protected void DecreaseQuality(int amount)
+        {
+            if (Quality > 0) Quality -= amount;
+            Quality = Math.Max(Quality, 0);
+        }
     }
 
-}
+        public class Legendary : Item
+        {
+            public override void UpdateQuality() { }
+
+
+            public override void UpdateSellIn() { }
+        }
+
+        public class Cheese : Item
+        {
+            public override void UpdateQuality()
+            {
+                // If SellIn is negative, quality increase twice as fast (for cheese).
+                if (SellIn >= 0) IncreaseQuality(1);
+                else IncreaseQuality(2);
+            }
+        }
+
+        public class Common : Item
+        {
+            public override void UpdateQuality()
+            {
+                if (SellIn > 0) DecreaseQuality(1);
+                else DecreaseQuality(2);
+            }
+        }
+
+        public class ConcertTicket : Item
+        {
+            public override void UpdateQuality()
+            {
+                if (SellIn >= 0)
+                {
+                    IncreaseQuality(1);
+                     if (SellIn < 10) IncreaseQuality(1);
+                     if (SellIn < 5) IncreaseQuality(1);
+                     if (SellIn <= 0) Quality = 0;
+                }
+            }
+        }
+
+        public class Conjured : Common
+        {
+            public override void UpdateQuality()
+            {
+                base.UpdateQuality();
+                base.UpdateQuality();
+            }
+        }
+    }
